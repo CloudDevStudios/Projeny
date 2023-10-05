@@ -94,18 +94,11 @@ class VisualStudioSolutionGenerator:
             modtime1 = os.path.getmtime(path1)
             modtime2 = os.path.getmtime(path2)
 
-            if modtime1 > modtime2:
-                return path1
-
-            return path2
-
+            return path1 if modtime1 > modtime2 else path2
         if self._sys.fileExists(path1):
             return path1
 
-        if self._sys.fileExists(path2):
-            return path2
-
-        return None
+        return path2 if self._sys.fileExists(path2) else None
 
     def _parseGeneratedUnityProject(self):
 
@@ -199,7 +192,10 @@ class VisualStudioSolutionGenerator:
         self, projectMap, unifyProjInfo):
 
         for projInfo in projectMap.values():
-            if projInfo.projectType != ProjectType.Custom and projInfo.projectType != ProjectType.CustomEditor:
+            if projInfo.projectType not in [
+                ProjectType.Custom,
+                ProjectType.CustomEditor,
+            ]:
                 continue
 
             if projInfo.projectType == ProjectType.CustomEditor:
@@ -225,7 +221,10 @@ class VisualStudioSolutionGenerator:
         self, allPackages, projectMap, unifyProjInfo):
 
         for projInfo in projectMap.values():
-            if projInfo.projectType != ProjectType.Custom and projInfo.projectType != ProjectType.CustomEditor:
+            if projInfo.projectType not in [
+                ProjectType.Custom,
+                ProjectType.CustomEditor,
+            ]:
                 continue
 
             assertThat(projInfo.packageInfo.createCustomVsProject)
@@ -263,7 +262,7 @@ class VisualStudioSolutionGenerator:
             if not packageInfo.createCustomVsProject:
                 continue
 
-            if packageInfo.assemblyProjectInfo == None:
+            if packageInfo.assemblyProjectInfo is None:
                 customProject = self._createGeneratedCsProjInfo(packageInfo, False)
                 allCustomProjects[customProject.name] = customProject
 
@@ -283,11 +282,9 @@ class VisualStudioSolutionGenerator:
     def _getFolderName(self, packageName, customFolders):
 
         for item in customFolders.items():
-            folderName = item[0]
             pattern = item[1]
             if packageName == pattern or (pattern.startswith('/') and re.match(pattern[1:], packageName)):
-                return folderName
-
+                return item[0]
         return None
 
     def _createGeneratedCsProjInfo(self, packageInfo, isEditor):
@@ -300,14 +297,16 @@ class VisualStudioSolutionGenerator:
         if isEditor:
             csProjectName += EditorProjectNameSuffix
 
-        outputPath = os.path.join(outputDir, csProjectName + ".csproj")
+        outputPath = os.path.join(outputDir, f"{csProjectName}.csproj")
 
         packageDir = os.path.join(outputDir, packageInfo.name)
 
         files = []
         self._addCsFilesInDirectory(packageDir, [], files, isEditor, True)
 
-        isIgnored = (len(files) == 0 or (len(files) == 1 and os.path.basename(files[0]) == PackageConfigFileName))
+        isIgnored = not files or (
+            len(files) == 1 and os.path.basename(files[0]) == PackageConfigFileName
+        )
 
         return CsProjInfo(
             projId, outputPath, csProjectName, files, isIgnored, None, ProjectType.CustomEditor if isEditor else ProjectType.Custom, packageInfo)
@@ -317,27 +316,28 @@ class VisualStudioSolutionGenerator:
         packageInfo = projInfo.packageInfo
         assertIsNotNone(packageInfo)
 
-        projDependencies = []
-
         isEditor = projInfo.projectType == ProjectType.CustomEditor
 
+        projDependencies = [projectMap[PluginsProjectName]]
         if isEditor:
-            projDependencies.append(projectMap[PluginsProjectName])
-            projDependencies.append(projectMap[PluginsEditorProjectName])
-
-            projDependencies.append(projectMap[packageInfo.name])
-
+            projDependencies.extend(
+                (
+                    projectMap[PluginsEditorProjectName],
+                    projectMap[packageInfo.name],
+                )
+            )
             if not packageInfo.isPluginDir:
-                projDependencies.append(projectMap[AssetsProjectName])
-                projDependencies.append(projectMap[AssetsEditorProjectName])
-        else:
-            projDependencies.append(projectMap[PluginsProjectName])
-
-            if not packageInfo.isPluginDir:
-                projDependencies.append(projectMap[AssetsProjectName])
+                projDependencies.extend(
+                    (
+                        projectMap[AssetsProjectName],
+                        projectMap[AssetsEditorProjectName],
+                    )
+                )
+        elif not packageInfo.isPluginDir:
+            projDependencies.append(projectMap[AssetsProjectName])
 
         for dependName in packageInfo.allDependencies:
-            assertThat(not dependName in projDependencies)
+            assertThat(dependName not in projDependencies)
 
             if dependName in projectMap:
                 dependProj = projectMap[dependName]
@@ -383,7 +383,7 @@ class VisualStudioSolutionGenerator:
                 continue
 
             projectList += 'Project("{{{0}}}") = "{1}", "{2}", "{{{3}}}"\n' \
-                .format(CsProjTypeGuid, proj.name, os.path.relpath(proj.absPath, outputDir), proj.id)
+                    .format(CsProjTypeGuid, proj.name, os.path.relpath(proj.absPath, outputDir), proj.id)
 
             if len(proj.dependencies) > 0:
                 projectList += '\tProjectSection(ProjectDependencies) = postProject\n'
@@ -397,18 +397,12 @@ class VisualStudioSolutionGenerator:
             if len(postSolution) != 0:
                 postSolution += '\n'
 
-            if proj.configType != None:
-                buildConfig = proj.configType
-            else:
-                buildConfig = 'Debug'
-
+            buildConfig = proj.configType if proj.configType != None else 'Debug'
             postSolution += \
-                '\t\t{{{0}}}.Debug|Any CPU.ActiveCfg = {1}|Any CPU\n\t\t{{{0}}}.Debug|Any CPU.Build.0 = {1}|Any CPU' \
-                .format(proj.id, buildConfig)
+                    '\t\t{{{0}}}.Debug|Any CPU.ActiveCfg = {1}|Any CPU\n\t\t{{{0}}}.Debug|Any CPU.Build.0 = {1}|Any CPU' \
+                    .format(proj.id, buildConfig)
 
-            folderName = self._getFolderName(proj.name, customFolderMap)
-
-            if folderName:
+            if folderName := self._getFolderName(proj.name, customFolderMap):
                 usedFolders.add(folderName)
 
                 folderId = folderIds[folderName]
@@ -417,15 +411,16 @@ class VisualStudioSolutionGenerator:
                     projectFolderMapsStr += '\n'
 
                 projectFolderMapsStr += \
-                    '\t\t{{{0}}} = {{{1}}}' \
-                    .format(proj.id, folderId)
+                        '\t\t{{{0}}} = {{{1}}}' \
+                        .format(proj.id, folderId)
 
-        projectFolderStr = ''
-        for folderName, folderId in folderIds.items():
-            if folderName in usedFolders:
-                projectFolderStr += 'Project("{{{0}}}") = "{1}", "{2}", "{{{3}}}"\nEndProject\n' \
-                    .format(SolutionFolderTypeGuid, folderName, folderName, folderId)
-
+        projectFolderStr = ''.join(
+            'Project("{{{0}}}") = "{1}", "{2}", "{{{3}}}"\nEndProject\n'.format(
+                SolutionFolderTypeGuid, folderName, folderName, folderId
+            )
+            for folderName, folderId in folderIds.items()
+            if folderName in usedFolders
+        )
         solutionStr = solutionStr.replace('[ProjectList]', projectList)
 
         if len(postSolution.strip()) > 0:
@@ -452,7 +447,7 @@ class VisualStudioSolutionGenerator:
     def _createStandardCsProjInfo(self, projectName, outputDir):
 
         outputDir = self._varMgr.expandPath(outputDir)
-        outputPath = os.path.join(outputDir, projectName + ".csproj")
+        outputPath = os.path.join(outputDir, f"{projectName}.csproj")
 
         projId = self._createProjectGuid()
 
@@ -468,7 +463,7 @@ class VisualStudioSolutionGenerator:
         self._addCsFilesInDirectory(outputDir, excludeDirs, projInfo.files, isEditor, False)
 
         # If it only contains the project config file then ignore it
-        if len([x for x in projInfo.files if not x.endswith('.yaml')]) == 0:
+        if not [x for x in projInfo.files if not x.endswith('.yaml')]:
             projInfo.isIgnored = True
 
     def _writeStandardCsProjForDirectory(
@@ -489,7 +484,7 @@ class VisualStudioSolutionGenerator:
         return str(uuid.uuid4()).upper()
 
     def _shouldReferenceBeCopyLocal(self, refName):
-        return refName != 'System' and refName != 'System.Core'
+        return refName not in ['System', 'System.Core']
 
     def _writeCsProject(self, projInfo, projectMap, files, refItems, defines):
 
@@ -508,7 +503,7 @@ class VisualStudioSolutionGenerator:
         # Add reference items given from unity project
         for refInfo in refItems:
 
-            if any([x for x in prebuiltProjectInfos if x.name == refInfo.name]):
+            if any(x for x in prebuiltProjectInfos if x.name == refInfo.name):
                 self._log.debug('Ignoring reference for prebuilt project "{0}"'.format(refInfo.name))
                 continue
 
@@ -540,27 +535,27 @@ class VisualStudioSolutionGenerator:
             compileElem.set('Include', os.path.relpath(filePath, outputDir))
 
         root.findall('./{0}PropertyGroup/{0}RootNamespace'.format(NsPrefix))[0] \
-            .text = self._config.tryGetString('', 'SolutionGeneration', 'RootNamespace')
+                .text = self._config.tryGetString('', 'SolutionGeneration', 'RootNamespace')
 
         root.findall('./{0}PropertyGroup/{0}ProjectGuid'.format(NsPrefix))[0] \
-            .text = '{' + projInfo.id + '}'
+                .text = '{' + projInfo.id + '}'
 
         root.findall('./{0}PropertyGroup/{0}OutputPath'.format(NsPrefix))[0] \
-            .text = os.path.relpath(self._varMgr.expandPath('[ProjectPlatformRoot]/Bin'), outputDir)
+                .text = os.path.relpath(self._varMgr.expandPath('[ProjectPlatformRoot]/Bin'), outputDir)
 
         root.findall('./{0}PropertyGroup/{0}AssemblyName'.format(NsPrefix))[0] \
-            .text = projInfo.name
+                .text = projInfo.name
 
         root.findall('./{0}PropertyGroup/{0}DefineConstants'.format(NsPrefix))[0] \
-            .text = defines
+                .text = defines
 
         tempFilesDir = os.path.relpath(self._varMgr.expandPath('[IntermediateFilesDir]'), outputDir)
 
         root.findall('./{0}PropertyGroup/{0}IntermediateOutputPath'.format(NsPrefix))[0] \
-            .text = tempFilesDir
+                .text = tempFilesDir
 
         root.findall('./{0}PropertyGroup/{0}BaseIntermediateOutputPath'.format(NsPrefix))[0] \
-            .text = tempFilesDir
+                .text = tempFilesDir
 
         # Add project references
         projectRefGroupElem = root.findall('./{0}ItemGroup[{0}ProjectReference]'.format(NsPrefix))[0]
@@ -622,10 +617,9 @@ class VisualStudioSolutionGenerator:
 
             if os.path.isdir(fullPath):
                 self._addCsFilesInDirectory(fullPath, excludeDirs, files, isForEditor, includeYaml)
-            else:
-                if itemName.endswith('.cs') or itemName.endswith('.txt') or (includeYaml and itemName.endswith('.yaml')):
-                    if not isForEditor or isInsideEditorFolder or itemName == PackageConfigFileName:
-                        files.append(fullPath)
+            elif itemName.endswith('.cs') or itemName.endswith('.txt') or (includeYaml and itemName.endswith('.yaml')):
+                if not isForEditor or isInsideEditorFolder or itemName == PackageConfigFileName:
+                    files.append(fullPath)
 
 class RefInfo:
     def __init__(self, name, hintPath):

@@ -119,7 +119,7 @@ class PrjRunner:
 
         if solutionPath != None:
             with self._log.heading('Building {0}'.format(os.path.basename(self._varMgr.expandPath(solutionPath)))):
-                if config == None:
+                if config is None:
                     config = self._config.tryGetString('Debug', 'Prebuild', 'SolutionConfig')
 
                 self._vsSolutionHelper.buildVisualStudioProject(solutionPath, config)

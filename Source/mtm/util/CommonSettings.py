@@ -10,5 +10,5 @@ class CommonSettings:
         self.maxProjectNameLength = self._config.getInt('MaxProjectNameLength')
 
     def getShortProjectName(self, val):
-        return val[0:self.maxProjectNameLength]
+        return val[:self.maxProjectNameLength]
 

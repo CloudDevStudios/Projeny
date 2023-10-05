@@ -69,7 +69,7 @@ class Runner:
             self._packageMgr.updateProjectJunctions(self._project, self._platform)
             if not isInit:
                 self._packageMgr.updateLinksForAllProjects()
-        
+
         elif self._requestId == 'openUnity':
             self._packageMgr.checkProjectInitialized(self._project, self._platform)
             self._unityHelper.openUnity(self._project, self._platform)
@@ -104,7 +104,7 @@ class Runner:
             packageRoot = self._param2
             versionCode = self._param3
 
-            if versionCode == None or len(versionCode) == 0:
+            if versionCode is None or len(versionCode) == 0:
                 versionCode = 0
 
             self._log.info("Installing release '{0}' into package dir '{1}' with version code '{2}'", releaseName, packageRoot, versionCode)

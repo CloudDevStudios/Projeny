@@ -56,14 +56,17 @@ class VisualStudioHelper:
             assertThat(self._sys.fileExists('[VisualStudioIdePath]'),
                "Cannot find path to visual studio.  Expected to find it at '{0}'".format(self._varMgr.expand('[VisualStudioIdePath]')))
 
-            if solutionPath == None:
+            if solutionPath is None:
                 self._sys.executeNoWait('"[VisualStudioIdePath]" {0}'.format(self._sys.canonicalizePath(filePath) if filePath else ""))
             else:
                 solutionPath = self._sys.canonicalizePath(solutionPath)
                 self._sys.executeNoWait('"[VisualStudioIdePath]" {0} {1}'.format(solutionPath, self._sys.canonicalizePath(filePath) if filePath else ""))
         else:
-            assertThat(filePath == None,
-               "Path to visual studio has not been defined.  Please set <VisualStudioIdePath> within one of your {0} files.  See documentation for details.", ConfigFileName)
+            assertThat(
+                filePath is None,
+                "Path to visual studio has not been defined.  Please set <VisualStudioIdePath> within one of your {0} files.  See documentation for details.",
+                ConfigFileName,
+            )
             self._sys.executeShellCommand(solutionPath, None, False)
 
     def buildVisualStudioProject(self, solutionPath, buildConfig):
@@ -71,11 +74,10 @@ class VisualStudioHelper:
         if self._config.getBool('Compilation', 'UseDevenv'):
             buildCommand = '"[VisualStudioCommandLinePath]" {0} /build "{1}"'.format(solutionPath, buildConfig)
         else:
-            buildCommand = '"[MsBuildExePath]" /p:VisualStudioVersion=12.0'
-            #if rebuild:
-                #buildCommand += ' /t:Rebuild'
-            buildCommand += ' /p:Configuration="{0}" "{1}"'.format(buildConfig, solutionPath)
-
+            buildCommand = (
+                '"[MsBuildExePath]" /p:VisualStudioVersion=12.0'
+                + ' /p:Configuration="{0}" "{1}"'.format(buildConfig, solutionPath)
+            )
         self._sys.executeAndWait(buildCommand)
 
 

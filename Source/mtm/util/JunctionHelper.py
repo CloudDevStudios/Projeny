@@ -56,11 +56,10 @@ class JunctionHelper:
                 continue
 
             if self.removeJunction(fullPath):
-                if os.path.exists(fullPath + '.meta'):
-                    os.remove(fullPath + '.meta')
+                if os.path.exists(f'{fullPath}.meta'):
+                    os.remove(f'{fullPath}.meta')
 
                 self._log.debug('Removed directory for package "{0}"'.format(name))
-            else:
-                if recursive:
-                    self.removeJunctionsInDirectory(fullPath, True)
+            elif recursive:
+                self.removeJunctionsInDirectory(fullPath, True)
 

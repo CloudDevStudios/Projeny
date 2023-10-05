@@ -93,9 +93,9 @@ class VarManager:
                 if not replacement:
                     replacement = os.environ.get(var)
 
-                    if not replacement:
-                        self._log.warn("Unable to resolve variable '{0}' when expanding '{1}'".format(var, originalText))
-                        replacement = var
+                if not replacement:
+                    self._log.warn("Unable to resolve variable '{0}' when expanding '{1}'".format(var, originalText))
+                    replacement = var
 
             text = prefix + replacement + suffix
 

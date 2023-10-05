@@ -56,7 +56,12 @@ class ProjectSchemaLoader:
         config.pluginsFolder = list(set(config.pluginsFolder))
 
         for packageName in config.pluginsFolder:
-            assertThat(not packageName in config.assetsFolder, "Found package '{0}' in both scripts and plugins.  Must be in only one or the other".format(packageName))
+            assertThat(
+                packageName not in config.assetsFolder,
+                "Found package '{0}' in both scripts and plugins.  Must be in only one or the other".format(
+                    packageName
+                ),
+            )
 
         return config
 
@@ -104,7 +109,10 @@ class ProjectSchemaLoader:
 
     def _shouldIncludeForPlatform(self, packageName, packageConfig, folderType, platform):
 
-        if folderType == FolderTypes.AndroidProject or folderType == FolderTypes.AndroidLibraries:
+        if folderType in [
+            FolderTypes.AndroidProject,
+            FolderTypes.AndroidLibraries,
+        ]:
             allowedPlatforms = [Platforms.Android]
         elif folderType == FolderTypes.Ios:
             allowedPlatforms = [Platforms.Ios]
@@ -185,7 +193,7 @@ class ProjectSchemaLoader:
             isPluginsDir = True
 
             if packageName in projectConfig.assetsFolder:
-                assertThat(not packageName in projectConfig.pluginsFolder)
+                assertThat(packageName not in projectConfig.pluginsFolder)
                 isPluginsDir = False
 
             if packageConfig.tryGetBool(False, 'ForceAssetsDirectory'):
@@ -209,7 +217,11 @@ class ProjectSchemaLoader:
             groupedDependencies = packageConfig.tryGetList([], 'GroupWith')
             extraDependencies = packageConfig.tryGetList([], 'Extras')
 
-            assertThat(not packageName in packageMap, "Found duplicate package with name '{0}'", packageName)
+            assertThat(
+                packageName not in packageMap,
+                "Found duplicate package with name '{0}'",
+                packageName,
+            )
 
             packageMap[packageName] = PackageInfo(
                 isPluginsDir, packageName, packageConfig, createCustomVsProject,
@@ -225,7 +237,7 @@ class ProjectSchemaLoader:
     def _tryGetAssemblyProjectInfo(self, packageConfig, packageName):
         assemblyProjectRelativePath = packageConfig.tryGetString(None, 'AssemblyProject', 'Path')
 
-        if assemblyProjectRelativePath == None:
+        if assemblyProjectRelativePath is None:
             return None
 
         projFullPath = self._varMgr.expand(assemblyProjectRelativePath)
@@ -250,10 +262,12 @@ class ProjectSchemaLoader:
             projFullPath, projAnalyzer.root, projConfig, dependencies)
 
     def getDependenciesFromCsProj(self, projectRoot):
-        result = []
-        for projRef in projectRoot.findall('./{0}ItemGroup/{0}ProjectReference/{0}Name'.format(NsPrefix)):
-            result.append(projRef.text)
-        return result
+        return [
+            projRef.text
+            for projRef in projectRoot.findall(
+                './{0}ItemGroup/{0}ProjectReference/{0}Name'.format(NsPrefix)
+            )
+        ]
 
     def _ensureAllPackagesExist(self, packageMap):
         for package in packageMap.values():
@@ -277,7 +291,7 @@ class ProjectSchemaLoader:
         for packageInfo in packageMap.values():
             assInfo = packageInfo.assemblyProjectInfo
 
-            if assInfo == None:
+            if assInfo is None:
                 continue
 
             for dependName in assInfo.dependencies:
@@ -305,7 +319,7 @@ class ProjectSchemaLoader:
 
     def _hasVsProjectDependency(self, info, packageMap):
         for dependName in info.allDependencies:
-            if not dependName in packageMap:
+            if dependName not in packageMap:
                 # For eg. a platform specific dependency
                 continue
 
@@ -330,7 +344,7 @@ class ProjectSchemaLoader:
 
     def _hasAssetsDependency(self, info, packageMap):
         for dependName in info.allDependencies:
-            if not dependName in packageMap:
+            if dependName not in packageMap:
                 # For eg. a platform specific dependency
                 continue
 
@@ -354,15 +368,15 @@ class ProjectSchemaLoader:
 
         indentInterval = '    '
 
-        indent = ((indentCount - 1) * (indentInterval + '.')) + indentInterval
-        self._log.debug(indent + '|-' + package.name)
+        indent = (indentCount - 1) * f'{indentInterval}.' + indentInterval
+        self._log.debug(f'{indent}|-{package.name}')
 
         for dependName in package.explicitDependencies:
             if dependName in packageMap:
                 subPackage = packageMap[dependName]
 
                 if subPackage.name in done:
-                    self._log.debug(indent + '.' + indentInterval + '|~' + subPackage.name)
+                    self._log.debug(f'{indent}.{indentInterval}|~{subPackage.name}')
                 else:
                     self._printDependency(subPackage, done, indentCount+1, packageMap)
 
@@ -412,7 +426,13 @@ class ProjectSchemaLoader:
     def _calculateDependencyListForPackage(self, packageInfo, packageMap, inProgress):
 
         if packageInfo.name in inProgress:
-            assertThat(False, "Found circular dependency when processing package {0}.  Dependency list: {1}".format(packageInfo.name, ' -> '.join([x for x in inProgress]) + '-> ' + packageInfo.name))
+            assertThat(
+                False,
+                "Found circular dependency when processing package {0}.  Dependency list: {1}".format(
+                    packageInfo.name,
+                    ' -> '.join(list(inProgress)) + '-> ' + packageInfo.name,
+                ),
+            )
 
         inProgress.add(packageInfo.name)
         allDependencies = set(packageInfo.explicitDependencies)
@@ -424,7 +444,7 @@ class ProjectSchemaLoader:
 
             explicitDependInfo = packageMap[explicitDependName]
 
-            if explicitDependInfo.allDependencies == None:
+            if explicitDependInfo.allDependencies is None:
                 self._calculateDependencyListForPackage(explicitDependInfo, packageMap, inProgress)
 
             for dependName in explicitDependInfo.allDependencies:
@@ -498,9 +518,6 @@ class PackageInfo:
         if self.folderType == FolderTypes.StreamingAssets:
             return '[StreamingAssetsDir]'
 
-        if self.isPluginDir:
-            return '[PluginsDir]'
-
-        return '[ProjectAssetsDir]'
+        return '[PluginsDir]' if self.isPluginDir else '[ProjectAssetsDir]'
 
 

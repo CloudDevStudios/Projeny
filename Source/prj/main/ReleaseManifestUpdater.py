@@ -104,16 +104,12 @@ class Runner:
         return manifest
 
     def _hasChanged(self, releasePaths):
-        if self._manifest == None:
-            return True
-
-        return False
+        return self._manifest is None
 
     def _getAllReleasePaths(self):
-        releasePath = []
-        for filePath in self._sys.findFilesByPattern(self._args.directory, '*.unitypackage'):
-            releasePath.append(filePath)
-        return releasePath
+        return list(
+            self._sys.findFilesByPattern(self._args.directory, '*.unitypackage')
+        )
 
 def addArguments(parser):
     parser.add_argument('directory', metavar='RELEASE_DIRECTORY', type=str, help="The directory to scan for unitypackage files. ")

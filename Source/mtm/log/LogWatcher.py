@@ -49,21 +49,19 @@ class LogWatcher:
                     time.sleep(0.1)
                     continue
 
-                line = logFile.readline()
-
-                if not line:
-                    time.sleep(1)
-                    logFile.seek(where)
-                else:
+                if line := logFile.readline():
                     self.logFunc(line.strip())
 
+                else:
+                    time.sleep(1)
+                    logFile.seek(where)
             # Make sure we get the rest of the log before quitting
             while True:
-                line = logFile.readline()
-                if not line:
-                    break
+                if line := logFile.readline():
+                    self.logFunc(line.strip())
 
-                self.logFunc(line.strip())
+                else:
+                    break
 
         self.isDone = True
 

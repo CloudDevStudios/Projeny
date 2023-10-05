@@ -37,11 +37,8 @@ class Runner:
 
         self._log.debug("Determined Project = {0}, Platform = {1}", project, platform)
 
-        lineNo = 1
-        if self._args.lineNo:
-            lineNo = int(self._args.lineNo)
-
-        if platform == None:
+        lineNo = int(self._args.lineNo) if self._args.lineNo else 1
+        if platform is None:
             solutionPath = None
         else:
             solutionPath = self._prjVsSolutionHelper.getCustomSolutionPath(project, platform)

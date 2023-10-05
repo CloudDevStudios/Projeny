@@ -31,7 +31,7 @@ class TestVarManager(unittest.TestCase):
 
         assertThat(pathMgr.hasKey('foo'))
         assertThat(not pathMgr.hasKey('asdf'))
-        assertThat(pathMgr.tryGet('bobsdf') == None)
+        assertThat(pathMgr.tryGet('bobsdf') is None)
         assertThat(pathMgr.expand('before [bar] after') == 'before result2 after')
         assertThat(pathMgr.expand('before [foo] after') == 'before yep result2 after')
 

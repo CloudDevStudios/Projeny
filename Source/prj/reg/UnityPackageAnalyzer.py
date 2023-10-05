@@ -48,9 +48,7 @@ class UnityPackageAnalyzer:
         assertThat(parts[1].lower() == '.unitypackage')
         baseName = parts[0].strip()
 
-        match = re.match('^(.*)@\s*(\d+\.?\d*)\s*$', baseName)
-
-        if match:
+        if match := re.match('^(.*)@\s*(\d+\.?\d*)\s*$', baseName):
             groups = match.groups()
 
             name = groups[0]
@@ -97,7 +95,7 @@ class UnityPackageAnalyzer:
 
                 headerString = headerHexValues.decode('utf8')
 
-                flag1 = headerString[0:4]
+                flag1 = headerString[:4]
 
                 unixTimeStamp = (headerBytes[7] << 24) + (headerBytes[6] << 16) + (headerBytes[5] << 8) + headerBytes[4]
                 datetime.utcfromtimestamp(unixTimeStamp)
@@ -145,5 +143,5 @@ if __name__ == '__main__':
 
     info = UnityPackageAnalyzer().getReleaseInfoFromUnityPackage(path)
 
-    print('Result: ' + str(info.__dict__))
+    print(f'Result: {str(info.__dict__)}')
 

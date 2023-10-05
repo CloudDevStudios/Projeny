@@ -20,8 +20,10 @@ class CsProjAnalyzer:
         return self._root.findall('./{0}PropertyGroup/{0}AssemblyName'.format(NsPrefix))[0].text
 
     def getProjectReferences(self):
-        result = []
-        for projRef in self._root.findall('./{0}ItemGroup/{0}ProjectReference/{0}Name'.format(NsPrefix)):
-            result.append(projRef.text)
-        return result
+        return [
+            projRef.text
+            for projRef in self._root.findall(
+                './{0}ItemGroup/{0}ProjectReference/{0}Name'.format(NsPrefix)
+            )
+        ]
 

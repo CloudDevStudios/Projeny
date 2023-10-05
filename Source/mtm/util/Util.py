@@ -5,7 +5,7 @@ from mtm.util.Assert import *
 
 def printVisualStudioFriendlyError(msg):
     # Use a visual studio friendly error so it pops up as an error
-    print("error MSB3021: " + msg)
+    print(f"error MSB3021: {msg}")
 
 def forceDeleteFile(filePath):
 
@@ -31,7 +31,12 @@ def ensureNoDuplicates(items, collectionName):
 
         seen.add(item)
 
-    assertThat(len(duplicates) == 0, "Found duplicates in collection '{0}': {1}".format(collectionName, ', '.join([str(x) for x in duplicates])))
+    assertThat(
+        not duplicates,
+        "Found duplicates in collection '{0}': {1}".format(
+            collectionName, ', '.join([str(x) for x in duplicates])
+        ),
+    )
 
 def mergeDictionaries(x, y):
     z = x.copy()
@@ -45,7 +50,7 @@ def formatTimeDelta(seconds):
     msg = ''
 
     if hours > 0:
-        msg += str(hours) + ' hours, '
+        msg += f'{str(hours)} hours, '
 
     # remaining seconds
     seconds = seconds - (hours * 3600)
@@ -53,7 +58,7 @@ def formatTimeDelta(seconds):
     minutes = seconds // 60
 
     if minutes > 0:
-        msg += str(minutes) + ' minutes, '
+        msg += f'{str(minutes)} minutes, '
 
     # remaining seconds
     seconds = seconds - (minutes * 60)

@@ -6,14 +6,14 @@ def triggerAssert(message, *params):
     if not message:
         raise Assertion('Error!')
 
-    if len(params) > 0:
+    if params:
         message = message.format(*params)
-    raise Assertion('Error: ' + message)
+    raise Assertion(f'Error: {message}')
 
 def _triggerAssertWithMessage(extraMessage, message, *params):
     fullMessage = ''
     if message:
-        fullMessage += message + ": "
+        fullMessage += f"{message}: "
 
     fullMessage += extraMessage
     triggerAssert(fullMessage, *params)
@@ -23,7 +23,7 @@ def assertIsNone(value, message = None, *params):
         triggerAssert(message, *params)
 
 def assertIsNotNone(value, message = None, *params):
-    if value == None:
+    if value is None:
         triggerAssert(message, *params)
 
 def assertThat(value, message = None, *params):

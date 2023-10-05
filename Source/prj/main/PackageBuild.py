@@ -39,10 +39,12 @@ class Runner:
             sys.exit(1)
 
     def _copyDir(self, relativePath):
-        self._sys.copyDirectory('[ProjenyDir]/' + relativePath, '[TempDir]/' + relativePath)
+        self._sys.copyDirectory(
+            f'[ProjenyDir]/{relativePath}', f'[TempDir]/{relativePath}'
+        )
 
     def _copyFile(self, relativePath):
-        self._sys.copyFile('[ProjenyDir]/' + relativePath, '[TempDir]/' + relativePath)
+        self._sys.copyFile(f'[ProjenyDir]/{relativePath}', f'[TempDir]/{relativePath}')
 
     def _runInternal(self):
         self._varMgr.add('PythonDir', PythonDir)
@@ -113,7 +115,10 @@ class Runner:
             self._copyDir('Bin')
 
             for fileName in self._sys.getAllFilesInDirectory('[InstallerDir]/BinFiles'):
-                self._sys.copyFile('[InstallerDir]/BinFiles/' + fileName, '[TempDir]/Bin/' + fileName)
+                self._sys.copyFile(
+                    f'[InstallerDir]/BinFiles/{fileName}',
+                    f'[TempDir]/Bin/{fileName}',
+                )
 
             self._sys.removeByRegex('[TempDir]/Bin/UnityPlugin/Release/*.pdb')
             self._sys.deleteDirectoryIfExists('[TempDir]/Bin/UnityPlugin/Debug')

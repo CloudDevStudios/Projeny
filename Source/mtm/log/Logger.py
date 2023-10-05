@@ -33,7 +33,7 @@ class HeadingBlock:
         self._log = log
         self._message = message
 
-        self._log._logInternal(self._message + "...", LogType.HeadingStart)
+        self._log._logInternal(f"{self._message}...", LogType.HeadingStart)
         self._startTime = datetime.now()
 
     def __enter__(self):
@@ -100,7 +100,7 @@ class Logger:
             self._totalStartTime = datetime.now()
 
         # Need to format it now so that heading gets the args
-        if len(args) > 0:
+        if args:
             message = message.format(*args)
 
         block = HeadingBlock(self, message)
@@ -128,7 +128,7 @@ class Logger:
 
     def _logInternal(self, message, logType, *args):
 
-        if len(args) > 0:
+        if args:
             message = message.format(*args)
 
         newLogType, newMessage = self.classifyMessage(logType, message)
@@ -150,11 +150,7 @@ class Logger:
     def _getPatterns(self, settingName):
         patternStrings = self._config.tryGetList([], 'Log', settingName)
 
-        result = []
-        for pattern in patternStrings:
-            result.append(re.compile('.*' + pattern + '.*'))
-
-        return result
+        return [re.compile(f'.*{pattern}.*') for pattern in patternStrings]
 
     def tryMatchPattern(self, message, maps, patterns):
         for logMap in maps:
@@ -162,16 +158,10 @@ class Logger:
                 return logMap.regex.sub(logMap.sub, message)
 
         for pattern in patterns:
-            match = pattern.match(message)
-
-            if match:
+            if match := pattern.match(message):
                 groups = match.groups()
 
-                if len(groups) > 0:
-                    return groups[0]
-
-                return message
-
+                return groups[0] if len(groups) > 0 else message
         return None
 
     def classifyMessage(self, logType, message):
@@ -180,25 +170,30 @@ class Logger:
             # If it is explicitly logged as something by calling for eg. log.info, use info type
             return logType, message
 
-        parsedMessage = self.tryMatchPattern(message, self.errorMaps, self.errorPatterns)
-        if parsedMessage:
+        if parsedMessage := self.tryMatchPattern(
+            message, self.errorMaps, self.errorPatterns
+        ):
             return LogType.Error, parsedMessage
 
         if not any(p.match(message) for p in self.warningPatternsIgnore):
-            parsedMessage = self.tryMatchPattern(message, self.warningMaps, self.warningPatterns)
-            if parsedMessage:
+            if parsedMessage := self.tryMatchPattern(
+                message, self.warningMaps, self.warningPatterns
+            ):
                 return LogType.Warn, parsedMessage
 
-        parsedMessage = self.tryMatchPattern(message, self.goodMaps, self.goodPatterns)
-        if parsedMessage:
+        if parsedMessage := self.tryMatchPattern(
+            message, self.goodMaps, self.goodPatterns
+        ):
             return LogType.Good, parsedMessage
 
-        parsedMessage = self.tryMatchPattern(message, self.infoMaps, self.infoPatterns)
-        if parsedMessage:
+        if parsedMessage := self.tryMatchPattern(
+            message, self.infoMaps, self.infoPatterns
+        ):
             return LogType.Info, parsedMessage
 
-        parsedMessage = self.tryMatchPattern(message, self.debugMaps, self.debugPatterns)
-        if parsedMessage:
+        if parsedMessage := self.tryMatchPattern(
+            message, self.debugMaps, self.debugPatterns
+        ):
             return LogType.Debug, parsedMessage
 
         return LogType.Noise, message
@@ -208,11 +203,11 @@ if __name__ == '__main__':
 
     class Log1:
         def log(self, logType, message):
-            print('log 1: ' + message)
+            print(f'log 1: {message}')
 
     class Log2:
         def log(self, logType, message):
-            print('log 2: ' + message)
+            print(f'log 2: {message}')
 
     Container.bind('LogStream').toSingle(Log1)
     Container.bind('LogStream').toSingle(Log2)

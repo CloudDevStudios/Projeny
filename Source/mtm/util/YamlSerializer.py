@@ -27,15 +27,12 @@ def _deserializeObj(data):
     if dataType is list:
         return [_deserializeObj(x) for x in data]
 
-    if data == None:
-        return YamlData({})
-
-    return data
+    return YamlData({}) if data is None else data
 
 # This is necessary because otherwise yaml inserts python specific type information
 def _serializeObj(obj):
 
-    if obj == None:
+    if obj is None:
         return None
 
     objType = type(obj)
@@ -47,11 +44,7 @@ def _serializeObj(obj):
 
         obj = [_serializeObj(x) for x in obj]
 
-    elif objType in (int, float, bool, str, datetime):
-        # Do nothing
-        pass
-
-    else:
+    elif objType not in (int, float, bool, str, datetime):
         if objType is not dict:
             obj = obj.__dict__
 

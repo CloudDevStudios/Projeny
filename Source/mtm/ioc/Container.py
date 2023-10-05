@@ -26,7 +26,7 @@ def resolve(identifier):
     return provider()
 
 def resolveMany(identifier):
-    if not identifier in _providers:
+    if identifier not in _providers:
         return []
 
     return [p() for p in _providers[identifier]]
@@ -55,7 +55,7 @@ class Binder:
         In both cases you can also provide arguments using the rest
         of the arguments
         '''
-        assertThat(not type(provider) in (str, int, float))
+        assertThat(type(provider) not in (str, int, float))
 
         if isinstance(provider, collections.Callable):
             # It is either a method or a class
@@ -67,7 +67,7 @@ class Binder:
                 return instance
         else:
             # Assume its an instance
-            assertThat(not type(provider) in _singletons)
+            assertThat(type(provider) not in _singletons)
             _singletons[type(provider)] = provider
             def call():
                 return provider
@@ -75,7 +75,7 @@ class Binder:
         self._toProvider(call)
 
     def _toProvider(self, provider):
-        if not self.identifier in _providers:
+        if self.identifier not in _providers:
             _providers[self.identifier] = []
 
         _providers[self.identifier].append(provider)

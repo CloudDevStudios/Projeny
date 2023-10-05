@@ -124,9 +124,10 @@ def installBindings(mainConfigPath):
 
     Container.bind('Config').toSingle(Config, loadYamlFilesThatExist(*configPaths))
 
-    initialVars = { 'ProjenyDir': projenyDir, }
-
-    initialVars['ConfigDir'] = os.path.dirname(mainConfigPath)
+    initialVars = {
+        'ProjenyDir': projenyDir,
+        'ConfigDir': os.path.dirname(mainConfigPath),
+    }
 
     if not MiscUtil.isRunningAsExe():
         initialVars['PythonPluginDir'] = _getPluginDirPath()
@@ -157,8 +158,7 @@ def _findFilesByPattern(directory, pattern):
     for root, dirs, files in os.walk(directory):
         for basename in files:
             if fnmatch.fnmatch(basename, pattern):
-                filename = os.path.join(root, basename)
-                yield filename
+                yield os.path.join(root, basename)
 
 def _getPluginDirPath():
     scriptDir = os.path.dirname(os.path.realpath(__file__))
@@ -177,7 +177,7 @@ def installPlugins():
         basePath = filePath[len(pluginDir) + 1:]
         basePath = os.path.splitext(basePath)[0]
         basePath = basePath.replace('\\', '.')
-        importlib.import_module('prj.plugins.' + basePath)
+        importlib.import_module(f'prj.plugins.{basePath}')
 
 def _getParentDirsAndSelf(dirPath):
     yield dirPath

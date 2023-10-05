@@ -19,7 +19,7 @@ class TestConfigYaml(unittest.TestCase):
         Container.clear()
 
     def testSimple(self):
-        yamlPath = ScriptDir + '/ExampleConfig.yaml'
+        yamlPath = f'{ScriptDir}/ExampleConfig.yaml'
 
         Container.bind('Config').toSingle(Config, loadYamlFilesThatExist(yamlPath))
 
@@ -40,7 +40,13 @@ class TestConfigYaml(unittest.TestCase):
 
     def testMultiple(self):
 
-        Container.bind('Config').toSingle(Config, loadYamlFilesThatExist(ScriptDir + '/ExampleConfig.yaml', ScriptDir + '/ExampleConfig2.yaml'))
+        Container.bind('Config').toSingle(
+            Config,
+            loadYamlFilesThatExist(
+                f'{ScriptDir}/ExampleConfig.yaml',
+                f'{ScriptDir}/ExampleConfig2.yaml',
+            ),
+        )
 
         config = Container.resolve('Config')
 
@@ -75,7 +81,13 @@ class TestConfigYaml(unittest.TestCase):
         assertIsEqual(config.tryGetInt(5, 'zxvzasdfasdfasdf'), 5)
 
     def testSpecialChars(self):
-        Container.bind('Config').toSingle(Config, loadYamlFilesThatExist(ScriptDir + '/ExampleConfig.yaml', ScriptDir + '/ExampleConfig2.yaml'))
+        Container.bind('Config').toSingle(
+            Config,
+            loadYamlFilesThatExist(
+                f'{ScriptDir}/ExampleConfig.yaml',
+                f'{ScriptDir}/ExampleConfig2.yaml',
+            ),
+        )
 
         config = Container.resolve('Config')
 

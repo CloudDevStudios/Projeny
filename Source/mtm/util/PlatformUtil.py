@@ -17,22 +17,22 @@ def fromPlatformFolderName(platformDirName):
 
 def fromPlatformArgName(platformArgStr):
 
-    if platformArgStr == 'win' or platformArgStr == 'w':
+    if platformArgStr in ['win', 'w']:
         return Platforms.Windows
 
-    if platformArgStr == 'webgl' or platformArgStr == 'g':
+    if platformArgStr in ['webgl', 'g']:
         return Platforms.WebGl
 
-    if platformArgStr == 'and' or platformArgStr == 'a':
+    if platformArgStr in ['and', 'a']:
         return Platforms.Android
 
-    if platformArgStr == 'osx' or platformArgStr == 'o':
+    if platformArgStr in ['osx', 'o']:
         return Platforms.OsX
 
-    if platformArgStr == 'ios' or platformArgStr == 'i':
+    if platformArgStr in ['ios', 'i']:
         return Platforms.Ios
 
-    if platformArgStr == 'lin' or platformArgStr == 'l':
+    if platformArgStr in ['lin', 'l']:
         return Platforms.Linux
 
     if platformArgStr == 'uwp':

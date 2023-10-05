@@ -57,7 +57,10 @@ class UnityPackageExtractor:
                     # Also, some packages have titles that aren't as nice as directories.  For example, Unity Test Tools uses the directory name UnityTestTools
                     # which is a bit nicer (though adds a bit of confusion since the release name doesn't match)
                     # Note that for upgrading/downgrading, this doesn't matter because it uses the ID which is stored in the ProjenyInstall.yaml file
-                    if not forcedName and (dirToCopyName.lower() != 'assets' and dirToCopyName.lower() != 'plugins'):
+                    if not forcedName and dirToCopyName.lower() not in [
+                        'assets',
+                        'plugins',
+                    ]:
                         forcedName = dirToCopyName
 
                     if forcedName:
@@ -80,7 +83,7 @@ class UnityPackageExtractor:
 
     def _isSpecialFolderName(self, dirName):
         dirNameLower = dirName.lower()
-        return dirNameLower == 'editor' or dirNameLower == 'streamingassets'
+        return dirNameLower in ['editor', 'streamingassets']
 
     def _chooseDirToCopy(self, startDir):
         rootNames = [x for x in self._sys.walkDir(startDir) if not x.endswith('.meta')]
@@ -99,10 +102,7 @@ class UnityPackageExtractor:
         if rootName.lower() == 'editor':
             return startDir
 
-        if os.path.isdir(fullRootPath):
-            return fullRootPath
-
-        return startDir
+        return fullRootPath if os.path.isdir(fullRootPath) else startDir
 
 if __name__ == '__main__':
     Container.bind('Config').toSingle(Config, [])

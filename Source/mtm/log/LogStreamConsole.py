@@ -122,7 +122,7 @@ class LogStreamConsole:
         if logType == LogType.Error:
             return ColorConsole.FOREGROUND_RED | self._defaultBg | ColorConsole.FOREGROUND_INTENSITY
 
-        assertThat(logType == LogType.Debug or logType == LogType.Noise)
+        assertThat(logType in [LogType.Debug, LogType.Noise])
         return ColorConsole.FOREGROUND_BLACK | self._defaultBg | ColorConsole.FOREGROUND_INTENSITY
 
 

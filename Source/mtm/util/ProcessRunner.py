@@ -76,21 +76,14 @@ class ProcessRunner:
         if timeout.timeOutOccurred:
             return ResultType.TimedOut
 
-        if resultCode != 0:
-            return ResultType.Error
-
-        return ResultType.Success
+        return ResultType.Error if resultCode != 0 else ResultType.Success
 
     # Note that in this case we pass the command as a string
     # This is recommended by the python docs here when using shell = True
     # https://docs.python.org/2/library/subprocess.html#subprocess.Popen
     def execShellCommand(self, commandStr, startDir = None, wait = True):
 
-        params = {}
-        params['stdout'] = subprocess.PIPE
-        params['stderr'] = subprocess.PIPE
-        params['shell'] = True
-
+        params = {'stdout': subprocess.PIPE, 'stderr': subprocess.PIPE, 'shell': True}
         if startDir != None:
             params['cwd'] = startDir
 
@@ -115,14 +108,11 @@ class ProcessRunner:
         if errors:
             self._log.error('Error occurred during command "{0}":'.format(commandStr))
             for line in errors.split('\n'):
-                self._log.error('    ' + line)
+                self._log.error(f'    {line}')
 
         exitStatus = proc.returncode
 
-        if exitStatus != 0:
-            return ResultType.Error
-
-        return ResultType.Success
+        return ResultType.Error if exitStatus != 0 else ResultType.Success
 
 class KillProcessThread:
 

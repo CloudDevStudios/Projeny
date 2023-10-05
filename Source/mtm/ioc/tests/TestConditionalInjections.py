@@ -38,7 +38,7 @@ class Test1:
 
 class Console1:
    def WriteLine(self, s):
-      print('Console - ' + s)
+       print(f'Console - {s}')
 
 class Foo:
     def __init__(self):

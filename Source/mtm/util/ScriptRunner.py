@@ -36,9 +36,14 @@ class ScriptRunner:
         totalSecondsStr = Util.formatTimeDelta(totalSeconds)
 
         if succeeded:
-            self._log.good('Operation completed successfully.  Took ' + totalSecondsStr + '.\n')
+            self._log.good(
+                f'Operation completed successfully.  Took {totalSecondsStr}'
+                + '.\n'
+            )
         else:
-            self._log.info('Operation completed with errors.  Took ' + totalSecondsStr + '.\n')
+            self._log.info(
+                f'Operation completed with errors.  Took {totalSecondsStr}' + '.\n'
+            )
 
         return succeeded
 

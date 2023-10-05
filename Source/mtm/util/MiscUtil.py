@@ -17,22 +17,22 @@ def getExecDirectory():
     return os.path.dirname(sys.argv[0])
 
 def confirmChoice(msg):
-    print('\n' + msg, end="")
+   print('\n' + msg, end="")
 
-    while True:
-        if msvcrt.kbhit():
-            choice = msvcrt.getch().decode("utf-8")
+   while True:
+      if msvcrt.kbhit():
+         choice = msvcrt.getch().decode("utf-8")
 
-            if choice == 'y':
-                return True
+         if choice == 'y':
+             return True
 
-            if choice == 'n':
-                return False
+         if choice == 'n':
+             return False
 
-            if choice == '\x03':
-                return False
+         if choice == '\x03':
+             return False
 
-            print('Invalid selection "%s".' % choice)
+         print(f'Invalid selection "{choice}".')
 
 def tryKillAdbExe(sysManager):
     try:
@@ -41,10 +41,8 @@ def tryKillAdbExe(sysManager):
         pass
 
 def doesProcessExist(pattern):
-    p_tasklist = subprocess.Popen('tasklist.exe /fo csv', stdout=subprocess.PIPE, universal_newlines=True)
+   p_tasklist = subprocess.Popen('tasklist.exe /fo csv', stdout=subprocess.PIPE, universal_newlines=True)
 
-    for p in csv.DictReader(p_tasklist.stdout):
-        if re.match(pattern, p['Image Name']):
-            return True
-
-    return False
+   return any(
+       re.match(pattern, p['Image Name'])
+       for p in csv.DictReader(p_tasklist.stdout))

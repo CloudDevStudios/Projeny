@@ -71,13 +71,13 @@ class PackageManager:
             if defaultProj == proj:
                 output += " (default)"
 
-            self._log.info("  " + output)
+            self._log.info(f"  {output}")
 
     def listAllPackages(self, projectName):
         packagesNames = self.getAllPackageNames(projectName)
         self._log.info("Found {0} Packages:".format(len(packagesNames)))
         for packageName in packagesNames:
-            self._log.info("  " + packageName)
+            self._log.info(f"  {packageName}")
 
     def _findSourceControl(self):
         for dirPath in self._sys.getParentDirectoriesWithSelf('[ConfigDir]'):
@@ -96,7 +96,7 @@ class PackageManager:
 
             self._sys.createDirectory(projDirPath)
 
-            if settingsProject == None:
+            if settingsProject is None:
                 settingsPath = '[ProjectRoot]/ProjectSettings'
                 newProjSettingsDir = os.path.join(projDirPath, 'ProjectSettings')
 
@@ -111,9 +111,9 @@ class PackageManager:
             newUnityPackagesDir = os.path.join(projDirPath, 'UnityPackages')
             self._sys.createDirectory(newUnityPackagesDir)
 
-            with self._sys.openOutputFile(os.path.join(projDirPath, ProjectConfigFileName)) as outFile:
-                outFile.write(
-"""
+                    with self._sys.openOutputFile(os.path.join(projDirPath, ProjectConfigFileName)) as outFile:
+                        outFile.write(
+            """
 ProjectSettingsPath: '{0}'
 UnityPackagesPath: '{1}'
 #AssetsFolder:
@@ -131,19 +131,12 @@ UnityPackagesPath: '{1}'
     def tryGetProjectFromAlias(self, alias):
         aliasMap = self._config.tryGetDictionary({}, 'ProjectAliases')
 
-        if alias not in aliasMap.keys():
-            return None
-
-        return aliasMap[alias]
+        return None if alias not in aliasMap.keys() else aliasMap[alias]
 
     def tryGetAliasFromFullName(self, name):
         aliasMap = self._config.tryGetDictionary({}, 'ProjectAliases')
 
-        for pair in aliasMap.items():
-            if pair[1] == name:
-                return pair[0]
-
-        return None
+        return next((pair[0] for pair in aliasMap.items() if pair[1] == name), None)
 
     def _validateDirForFolderType(self, packageInfo, sourceDir):
         if packageInfo.folderType == FolderTypes.AndroidProject:
@@ -181,7 +174,9 @@ UnityPackagesPath: '{1}'
             try:
                 self._sys.executeAndWait('svn propset svn:ignore -F [ProjectRootSvnIgnoreTemplate] .', '[ProjectRoot]')
             except Exception as e:
-                self._log.warn("Warning: Failed to add generated project directories to SVN ignore!  This may be caused by 'svn' not being available on the command line.  Details: " + str(e))
+                self._log.warn(
+                    f"Warning: Failed to add generated project directories to SVN ignore!  This may be caused by 'svn' not being available on the command line.  Details: {str(e)}"
+                )
         #else:
             #self._log.warn('Warning: Could not determine source control in use!  An ignore file will not be added for your project.')
 
@@ -237,20 +232,21 @@ UnityPackagesPath: '{1}'
             if not self._sys.directoryExists(packageFolder):
                 continue
 
-            for name in self._sys.walkDir(packageFolder):
-                if self._sys.IsDir(os.path.join(packageFolder, name)):
-                    results.append(name)
-
+            results.extend(
+                name
+                for name in self._sys.walkDir(packageFolder)
+                if self._sys.IsDir(os.path.join(packageFolder, name))
+            )
         return results
 
     def getAllProjectNames(self):
         assertThat(self._varMgr.hasKey('UnityProjectsDir'), "Could not find 'UnityProjectsDir' in PathVars.  Have you set up your {0} file?", ConfigFileName)
 
-        results = []
-        for name in self._sys.walkDir('[UnityProjectsDir]'):
-            if self._sys.IsDir('[UnityProjectsDir]/' + name):
-                results.append(name)
-        return results
+        return [
+            name
+            for name in self._sys.walkDir('[UnityProjectsDir]')
+            if self._sys.IsDir(f'[UnityProjectsDir]/{name}')
+        ]
 
     # This will set up all the directory junctions for all projects for all platforms
     def updateLinksForAllProjects(self):
@@ -277,19 +273,19 @@ UnityPackagesPath: '{1}'
         self._unityEditorMenuGenerator.Generate(currentProjName, currentPlatform, outputPath, projectNames)
 
     def _addGeneratedProjenyFiles(self, outDir, schema):
-        menuFileOutPath = outDir + '/Editor/ProjenyChangeProjectMenu.cs'
-        placeholderOutPath1 = outDir + '/Placeholder.cs'
-        placeholderOutPath2 = outDir + '/Editor/Placeholder.cs'
+        menuFileOutPath = f'{outDir}/Editor/ProjenyChangeProjectMenu.cs'
+        placeholderOutPath1 = f'{outDir}/Placeholder.cs'
+        placeholderOutPath2 = f'{outDir}/Editor/Placeholder.cs'
 
         # Need to always use the same meta files to avoid having unity do a refresh
         self._createSwitchProjectMenuScript(schema.name, schema.platform, menuFileOutPath)
-        self._sys.copyFile('[ProjenyChangeProjectMenuMeta]', menuFileOutPath + ".meta")
+        self._sys.copyFile('[ProjenyChangeProjectMenuMeta]', f"{menuFileOutPath}.meta")
 
         self._sys.copyFile('[PlaceholderFile1]', placeholderOutPath1)
-        self._sys.copyFile('[PlaceholderFile1].meta', placeholderOutPath1 + ".meta")
+        self._sys.copyFile('[PlaceholderFile1].meta', f"{placeholderOutPath1}.meta")
 
         self._sys.copyFile('[PlaceholderFile2]', placeholderOutPath2)
-        self._sys.copyFile('[PlaceholderFile2].meta', placeholderOutPath2 + ".meta")
+        self._sys.copyFile('[PlaceholderFile2].meta', f"{placeholderOutPath2}.meta")
 
     def _updateDirLinksForSchema(self, schema):
         self._removeProjectPlatformJunctions()
@@ -304,7 +300,7 @@ UnityPackagesPath: '{1}'
             dllOutPath = '[PluginsDir]/Projeny/Editor/Projeny.dll'
 
             self._sys.copyFile('[ProjenyUnityEditorDllPath]', dllOutPath)
-            self._sys.copyFile('[ProjenyUnityEditorDllMetaFilePath]', dllOutPath + '.meta')
+            self._sys.copyFile('[ProjenyUnityEditorDllMetaFilePath]', f'{dllOutPath}.meta')
 
             self._sys.copyFile('[YamlDotNetDllPath]', '[PluginsDir]/Projeny/Editor/YamlDotNet.dll')
 

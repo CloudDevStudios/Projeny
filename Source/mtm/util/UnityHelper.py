@@ -45,7 +45,7 @@ class UnityHelper:
         if batchMode:
             allArgs += ' -batchmode -nographics'
 
-        allArgs += ' ' + extraArgs
+        allArgs += f' {extraArgs}'
 
         self.runEditorFunctionRaw(projectName, platform, editorCommand, allArgs)
 
@@ -99,9 +99,9 @@ class UnityHelper:
             command = '"[UnityExePath]" -buildTarget {0} -projectPath "[UnityProjectsDir]/{1}/{2}-{3}"'.format(self._getBuildTargetArg(platform), projectName, self._commonSettings.getShortProjectName(projectName), PlatformUtil.toPlatformFolderName(platform))
 
             if editorCommand:
-                command += ' -executeMethod ' + editorCommand
+                command += f' -executeMethod {editorCommand}'
 
-            command += ' ' + extraArgs
+            command += f' {extraArgs}'
 
             self._sys.executeAndWait(command)
         except ProcessErrorCodeException as e:
@@ -117,8 +117,6 @@ class UnityHelper:
 
             os.environ['ModestTreeBuildConfigOverride'] = ""
 
-if __name__ == '__main__':
-    pass
 
 
 

@@ -48,7 +48,7 @@ class Config:
 
     def _tryGetPrimitive(self, fallback, propType, *args):
         result = self.tryGet(*args)
-        if result == None:
+        if result is None:
             return fallback
         assertIsType(result, propType, "Unexpected type for yaml property '{0}'", self._propNameToString(args))
         return result
@@ -64,18 +64,14 @@ class Config:
     def tryGet(self, *args):
         matches = self.getAll(*args)
 
-        if len(matches) == 0:
-            return None
-
-        # First one always overrides the other ones
-        return matches[0]
+        return None if len(matches) == 0 else matches[0]
 
     def getAll(self, *args):
         assertThat(len(args) > 0)
 
         # When ! is appended to the end of the key, this is treated as an override
         newArgs = list(args)
-        newArgs[len(newArgs)-1] += '!'
+        newArgs[-1] += '!'
         result = self._getAllInternal(*newArgs)
 
         if len(result) > 0:
@@ -86,7 +82,7 @@ class Config:
         if len(result) == 0:
             # When ? is appended to the end of the key, this is treated as a fallback
             newArgs = list(args)
-            newArgs[len(newArgs)-1] += '?'
+            newArgs[-1] += '?'
             result = self._getAllInternal(*newArgs)
 
         return result
@@ -106,7 +102,13 @@ class Config:
                     break
 
                 currentDict = currentDict[name]
-                assertThat(type(currentDict) is dict, "Unexpected type '{0}' found for '{1}': {2}", type(currentDict), '.'.join(args[0:i+1]), currentDict)
+                assertThat(
+                    type(currentDict) is dict,
+                    "Unexpected type '{0}' found for '{1}': {2}",
+                    type(currentDict),
+                    '.'.join(args[: i + 1]),
+                    currentDict,
+                )
 
         return result
 
@@ -137,7 +139,7 @@ class Config:
     def tryGetOrderedDictionary(self, fallback, *args):
         dictionaries = self.tryGetList(None, *args)
 
-        if dictionaries == None:
+        if dictionaries is None:
             return fallback
 
         result = OrderedDict()

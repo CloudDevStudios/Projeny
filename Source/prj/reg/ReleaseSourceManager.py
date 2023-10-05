@@ -44,10 +44,7 @@ class ReleaseSourceManager:
         self._log.info("Finished initializing Release Source Manager, found {0} releases in total", self._getTotalReleaseCount())
 
     def _getTotalReleaseCount(self):
-        total = 0
-        for reg in self._releaseSources:
-            total += len(reg.releases)
-        return total
+        return sum(len(reg.releases) for reg in self._releaseSources)
 
     def _createReleaseSource(self, regType, settings):
         if regType == 'LocalFolder':
@@ -73,8 +70,7 @@ class ReleaseSourceManager:
 
         result = []
         for source in self._releaseSources:
-            for release in source.releases:
-                result.append(release)
+            result.extend(iter(source.releases))
         result.sort(key = lambda x: x.name.lower())
         return result
 
